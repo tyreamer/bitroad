@@ -1,0 +1,130 @@
+body {
+	min-width: 330px;
+}
+
+.post-detail-item{
+   font-size: 20px;
+	display: inline;
+		overflow: auto;
+		padding: 0;
+}
+
+.post-header {
+  margin-top: 30px;
+}
+
+#post-like {
+	float: right;
+}
+
+#post-like:hover {
+   cursor: pointer;
+   color: red;
+}
+
+#post-wrapper {
+	background-color: #fff;
+}
+
+#main_description_area .jumbotron {
+	padding: 10px;
+}
+
+.hide-bullets {
+	list-style:none;
+	margin-left: auto;
+	margin-right: auto;
+ padding: 0;
+    list-style-type: none;
+}
+
+.thumb-container {
+	text-align: left;
+}
+
+.carousel-inner > .item > img, 
+.carousel-inner > .item > a > img{
+	width: 100%; /* use this, or not */
+	margin: auto;
+}
+
+#contact-btn {
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#main_description_area .btn {
+	padding: 5px;
+	font-size: 12px;
+}
+
+#chat-name {
+	text-align: right;
+}
+
+#spec-location {
+	text-align: center;
+}
+.carousel-bounding-box{
+	max-height: 200px;
+}
+
+.jumbotron {
+	width: 100%;
+	padding: 3% 2% 3% 2%;
+	margin: 0 0 5% 0;
+}
+
+.spam {
+	text-align: center;
+}
+
+@media screen and (max-width: 769px)  {	
+
+.post-info-mobile-fix {
+	margin-top: 30px !important;
+}
+
+.spam {
+	text-align: left;
+}
+
+#description {
+	text-align: center;
+}
+
+#chat-name {
+		text-align: center;
+	}
+
+	#spec-location {
+		text-align: right;
+	}
+	
+	#post-title {
+		text-align: center;
+	}
+	
+	
+	#share-buttons-modal {
+		width: 25px;
+		padding: 15px;
+		border: 0;
+		box-shadow: 0;
+		display: inline !important;
+	}
+
+	.post-header {
+	  margin-top: 0px;
+	}
+	
+	#post-like {
+		float: right;
+	}
+	
+	#post-wrapper #logo {
+		height: 70px;
+		width: 70px;
+	}
+}

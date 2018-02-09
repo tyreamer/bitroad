@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="style.css" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>   
+  <script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js"></script>
+  <script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyBYbY5UaVQh-ZUbXCwWKe2OiEOS0-ljE1Q",
+    authDomain: "project-3068965894659563289.firebaseapp.com",
+    databaseURL: "https://project-3068965894659563289.firebaseio.com",
+    storageBucket: "project-3068965894659563289.appspot.com",
+    messagingSenderId: "844316448558"
+  };
+  firebase.initializeApp(config);
+
+  var userId = "";
+  var friendId = "";
+  var facebookId = "";
+  var myFacebookId = "";
+  var friendIdResult = "";
+
+  var convos = [];
+  var chatMessages = [];
+  var searchResultsRecords = {};
+  var friendResultsRecords = {};
+  var blockedUserResultsRecords = {};
+  var blockedUsersId = [];
+
+  var lastMessageTimestamp = 0;
+  var messageTimestampRecords = [];
+
+  var selectedUser = {};
+  var selectedUserId = "";
+  var selectedUsername = "";
+
+  var activeSelection = false;
+
+  function logIn() {
+    var provider = new firebase.auth.FacebookAuthProvider();
+
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+      var token = result.credential.accessToken;
+      var user = result.user;
+    }).catch(function(error) {
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      console.log(errorMessage);
+    });
+  }
+
+  function signOut() {
+    firebase.auth().signOut().then(function() {
+
+    }, function(error) {
+      console.log("error");
+    });
+  }
+
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      var facebookId = user.providerData[0].uid;
+      myFacebookId = facebookId;
+
+      var users = firebase.database().ref("users");
+      users.orderByChild("facebook_id").equalTo(facebookId).on("value", function(snapshot) {
+        var value = snapshot.val();
+
+        if (value != null) {
+          if (Object.keys(value).length > 0) {
+            userId = Object.keys(value)[0];
+            fetchConvos();
+          } else {
+            window.location = "login.html#nousererror";
+            console.log("test");
+          }
+        } else {
+          window.location = "login.html#novalueerror";
+          console.log("test2");
+        }
+      });
+    } else {
+      window.location = "login.html#noqueryerror";
+      console.log("test3");
+
+      // setTimeout(function () {
+      //   var provider = new firebase.auth.FacebookAuthProvider();
+      //
+      //   firebase.auth().signInWithPopup(provider).then(function(result) {
+      //     var token = result.credential.accessToken;
+      //     var user = result.user;
+      //   }).catch(function(error) {
+      //     var errorCode = error.code;
+      //     var errorMessage = error.message;
+      //     console.log(errorMessage);
+      //   });
+      // }, 1000);
+    }
+  });
+
+  function fetchConvos() {
+    convos = [];
+
+    var conversations = firebase.database().ref("conversations/" + userId);
+    conversations.on("value", function(snapshot) {
+      var value = snapshot.val();
+
+      if (value != null) {
+        var keys = Object.keys(value);
+
+        for (index in keys) {
+          var key = keys[index];
+
+          var convoUser = firebase.database().ref("users/" + key);
+          convoUser.on("value", function(snapshot) {
+            var convo = snapshot.val();
+
+            if (convo != null) {
+              convo["userId"] = key;
+              convos.push(convo);
+            }
+          });
+        }
+      }
+
+      reloadConvos();
+    });
+  }
+
+  function startListeningForChats(friendIdentifier) {
+    var tag = "#" + friendIdentifier + "-badge";
+          console.log("tag="+tag);
+
+    $(tag).hide();
+    console.log("hide");
+    stopListeningForChats();
+    friendId = friendIdentifier;
+    messageTimestampRecords = [];
+
+    document.getElementById("message-field").value = "";
+
+    for (index in convos) {
+      var converValue = convos[index];
+      var convFriendId = converValue["userId"];
+
+      if (convFriendId == friendId) {
+        var username = converValue["username"];
+        facebookId = converValue["facebook_id"];
+        document.getElementById("chat-title").innerHTML = "Chat with " + username + "...";
+      }
+    }
+
+    document.getElementById("messages").innerHTML = "";
+
+    var messages = firebase.database().ref("messages/" + friendId + "_" + userId);
+    messages.orderByChild("timestamp").on("child_added", function(snapshot) {
+      var value = snapshot.val();
+      var timestamp = value["timestamp"];
+
+      if (messageTimestampRecords.indexOf(timestamp) == -1) {
+        var text = value["text"];
+        var style = "background-image: url(https://graph.facebook.com/" + myFacebookId + "/picture);";
+
+        var userIdentifier = value["uid"];
+        var messageHTML = '<div class="message-item-container"><div class="chat-image sent" style="' + style + '"></div><div class="message-item sent" id="msg-item">' + text + '</div></div><img src="https://graph.facebook.com/' + myFacebookId + '/picture" style="display:none;" alt="" />';
+
+        if (userId != userIdentifier) {
+          style = "background-image: url(https://graph.facebook.com/" + facebookId + "/picture);";
+          messageHTML = '<div class="message-item-container"><div class="chat-image" style="' + style + '"></div><div class="message-item" id="msg-item">' + text + '</div></div><img src="https://graph.facebook.com/' + facebookId + '/picture" style="display:none;" alt="" />';
+        }
+
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = messageHTML;
+
+        document.getElementById("messages").appendChild(newDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      }
+
+      lastMessageTimestamp = timestamp;
+      messageTimestampRecords.push(timestamp);
+    });
+
+    // /*
+    var messages1 = firebase.database().ref("messages/" + userId + "_" + friendId);
+    messages1.orderByChild("timestamp").on("child_added", function(snapshot) {
+      var value = snapshot.val();
+      var timestamp = value["timestamp"];
+
+      if (messageTimestampRecords.indexOf(timestamp) == -1) { // if (timestamp != lastMessageTimestamp)
+        var text = value["text"];
+        var style = "background-image: url(https://graph.facebook.com/" + myFacebookId + "/picture);";
+
+        var userIdentifier = value["uid"];
+        var messageHTML = '<div class="message-item-container"><div class="chat-image sent" style="' + style + '"></div><div class="message-item sent">' + text + '</div></div><img src="https://graph.facebook.com/' + myFacebookId + '/picture" style="display:none;" alt="" />';
+
+        if (userId != userIdentifier) {
+          style = "background-image: url(https://graph.facebook.com/" + facebookId + "/picture);";
+          messageHTML = '<div class="message-item-container"><div class="chat-image" style="' + style + '"></div><div class="message-item">' + text + '</div></div><img src="https://graph.facebook.com/' + facebookId + '/picture" style="display:none;" alt="" />';
+        }
+
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = messageHTML;
+
+        document.getElementById("messages").appendChild(newDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+      }
+
+      lastMessageTimestamp = timestamp;
+      messageTimestampRecords.push(timestamp);
+    });
+    // */
+  }
+
+  function stopListeningForChats() {
+    var messages = firebase.database().ref("messages/" + userId + "_" + friendId);
+    messages.orderByChild("timestamp").off();
+  }
+
+  function reloadConvos() {
+    var conversations = {};
+
+    for (index in convos) {
+      var conv = convos[index];
+      var friendId = conv["userId"];
+
+      conversations[friendId] = conv;
+    }
+
+    convos = [];
+    var finalHTML = "";
+
+    var rawKeys = Object.keys(conversations);
+
+    for (keyIndex in rawKeys) {
+      var convValue = rawKeys[keyIndex];
+      var conversation = conversations[convValue];
+      convos.push(conversation);
+
+      var user = conversation["userId"];
+      var username = conversation["username"];
+      var fullName = conversation["full_name"];
+      var thumbnail = conversation["facebook_id"];
+
+      var chatId = "'" + user + "'";
+      var tag = user + "-badge";
+      console.log("tag=="+tag);
+      var badgedata = '3';
+      var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="startListeningForChats(' + chatId + ')"><span id="' + tag + '" class="notification-container">1</span><div class="convo-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + thumbnail + '/picture)"></div><h1>' + username + '</h1><p>' + fullName + '</p></div></button>';
+      finalHTML = finalHTML + convoHTML;
+    }
+
+    if (document.getElementById("conversations").innerHTML != finalHTML) {
+      document.getElementById("conversations").innerHTML = finalHTML;
+    }
+  }
+
+  function sendMessage() {
+    var message = document.getElementById("message-field").value;
+
+    if (message.length > 0 && friendId.length > 0) {
+      var time = new Date().getTime().toString();
+
+      if (time.length > 10) {
+        time = time.substring(0, 10);
+      }
+
+      var timeString = parseInt(time);
+
+      var newMessage = firebase.database().ref().child('messages').child(userId + "_" + friendId).child(userId + "_" + timeString);
+      newMessage.set({
+        text: message,
+        timestamp: timeString,
+        uid: userId
+      });
+
+      var newMessage1 = firebase.database().ref().child('messages').child(friendId + "_" + userId).child(userId + "_" + timeString);
+      newMessage1.set({
+        text: message,
+        timestamp: timeString,
+        uid: userId
+      });
+
+      var convo = firebase.database().ref().child('conversations').child(userId).child(friendId);
+      convo.set({
+        is_new: true,
+        last_message_id: userId + "_" + time,
+        last_timestamp: timeString
+      });
+
+      var convo1 = firebase.database().ref().child('conversations').child(friendId).child(userId);
+      convo1.set({
+        is_new: true,
+        last_message_id: userId + "_" + time,
+        last_timestamp: timeString
+      });
+    }
+
+
+    // var messages = firebase.database().ref("messages/" + userId + "_" + friendId);
+    // messages.orderByChild("timestamp").off();
+
+    document.getElementById("message-field").value = "";
+  }
+
+  function searchFriends() {
+    toggleFindFriendsModal();
+  }
+
+  function viewRequests() {
+    loadRequests();
+
+    document.getElementById("dialog-requests").classList.toggle("presented");
+		document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function viewFriends() {
+    loadFriends();
+
+    document.getElementById("dialog-friends").classList.toggle("presented");
+    document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function viewBlockedUsers() {
+    loadBlockedUsers();
+
+    document.getElementById("dialog-blockedusers").classList.toggle("presented");
+    document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function viewDeleteAccount() {
+    loadBlockedUsers();
+
+    document.getElementById("deleteaccount-button").style.opacity = "1.0";
+    document.getElementById("deleteaccount-button").style.pointerEvents = "auto";
+    document.getElementById("dialog-deleteaccount").classList.toggle("presented");
+    document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function toggleFindFriendsModal() {
+		document.getElementById("dialog-main").classList.toggle("presented");
+		document.getElementById("dialog-bg").classList.toggle("presented");
+
+    document.getElementById("search-field").focus();
+	}
+
+  function hideFindFriendsModal() {
+    document.getElementById("dialog-main").classList.toggle("presented");
+		document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function hideFriendsModal() {
+    document.getElementById("dialog-friends").classList.toggle("presented");
+		document.getElementById("dialog-bg").classList.toggle("presented");
+  }
+
+  function loadSearchResults() {
+    var searchQuery = document.getElementById("search-field").value;
+
+    var results = [];
+    var searchResults = {};
+
+    firebase.database().ref("friends").child(userId).on("value", function(snapshot) {
+      var sval = snapshot.val();
+
+      firebase.database().ref("users").orderByChild("username").equalTo(searchQuery).on("value", function(snapshot) {
+        var users = snapshot.val();
+
+        for (index in users) {
+          var key = Object.keys(users)[0];
+
+          var user = users[index];
+          user["userId"] = key;
+          selectedUser = user;
+
+          if (sval != null) {
+            if (sval[index] != null) {
+              friendIdResult = user["userId"];
+
+              var friendId = "'" + user["userId"] + "'"
+              var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="startConvo(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + user["facebook_id"] + '/picture)"></div><h1>' + user["username"] + '</h1><p>' + user["full_name"] + '</p></div></button>';
+              finalHTML = convoHTML;
+
+              document.getElementById("results").innerHTML = finalHTML;
+            } else {
+              friendIdResult = user["userId"];
+
+              var friendId = "'" + user["userId"] + "'"
+              var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="requestFriend(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + user["facebook_id"] + '/picture)"></div><h1>' + user["username"] + '</h1><p>' + user["full_name"] + '</p></div></button>';
+              finalHTML = convoHTML;
+
+              document.getElementById("results").innerHTML = finalHTML;
+            }
+          } else {
+            friendIdResult = user["userId"];
+
+            var friendId = "'" + user["userId"] + "'"
+            var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="requestFriend(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + user["facebook_id"] + '/picture)"></div><h1>' + user["username"] + '</h1><p>' + user["full_name"] + '</p></div></button>';
+            finalHTML = convoHTML;
+
+            document.getElementById("results").innerHTML = finalHTML;
+          }
+        }
+      });
+    });
+  }
+
+  function requestFriend(friendId) {
+    activeSelection = true;
+
+    firebase.database().ref("incoming_requests").child(friendId).child(userId).on("value", function(snapshot) {
+      var snapVal = snapshot.val();
+
+      if (activeSelection == true) {
+        if (snapVal != null) {
+          alert("This user has not accepted your friend request.");
+        } else {
+          var friend = confirm("You are currently not this person's friend. Would you like to request them?");
+
+          if (friend == true) {
+            var request = firebase.database().ref("incoming_requests").child(friendId).child(userId);
+            request.set(true);
+          }
+        }
+
+        activeSelection = false;
+      }
+    });
+
+    /*
+    var friend = confirm("You are currently not this person's friend. Would you like to request them?");
+
+    if (friend == true) {
+
+    } else {
+      txt = "You pressed Cancel!";
+    }
+    */
+  }
+
+  function loadFriends() {
+    var results = [];
+    var friendResults = {};
+
+    var friends = firebase.database().ref("friends/" + userId);
+    friends.orderByChild("timestamp").on("value", function(snapshot) {
+      if (snapshot.val() != null) {
+        var snapshotVal = Object.keys(snapshot.val());
+
+        friendResults = {};
+        friendResultsRecords = {};
+
+        for (index in snapshotVal) {
+          var key = snapshotVal[index];
+
+          var users = firebase.database().ref("users/" + key).on("value", function(snapshot) {
+            var user = snapshot.val();
+            user["userId"] = snapshotVal[index];
+            friendResults[snapshotVal[index]] = user;
+
+            results = [];
+
+            for (var key in friendResults) {
+              results.push(friendResults[key]);
+            }
+
+            var finalHTML = "";
+            friendResultsRecords = friendResults;
+            console.log(friendResultsRecords);
+
+            for (index in results) {
+              var result = results[index];
+
+              var friendId = "'" + result["userId"] + "'"
+              var convoHTML = '<div id="badge"><button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="startFriendConvo(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + result["facebook_id"] + '/picture)"></div><h1>' + result["username"] + '</h1><p>' + result["full_name"] + '</p></div></button></div>';
+              finalHTML = finalHTML + convoHTML;
+            }
+
+            document.getElementById("friend-results").innerHTML = finalHTML;
+          });
+        }
+      } else {
+        document.getElementById("friend-results").innerHTML = "";
+      }
+    });
+  }
+
+  function loadBlockedUsers() {
+    var results = [];
+    var friendResults = {};
+
+    var friends = firebase.database().ref("a_blocked_b/" + userId);
+    friends.orderByChild("timestamp").on("value", function(snapshot) {
+      if (snapshot.val() != null) {
+        var snapshotVal = Object.keys(snapshot.val());
+        friendResults = {};
+        blockedUserResultsRecords = {};
+        blockedUsersId = [];
+
+        for (index in snapshotVal) {
+          var key = snapshotVal[index];
+
+          var users = firebase.database().ref("users/" + key).on("value", function(snapshot) {
+            var user = snapshot.val();
+            user["userId"] = snapshotVal[index];
+            friendResults[snapshotVal[index]] = user;
+            blockedUsersId.push(user["userId"]);
+
+            results = [];
+
+            for (var key in friendResults) {
+              results.push(friendResults[key]);
+            }
+
+            var finalHTML = "";
+            blockedUserResultsRecords = friendResults;
+            console.log(blockedUserResultsRecords);
+
+            for (index in results) {
+              var result = results[index];
+
+              var friendId = "'" + result["userId"] + "'"
+              var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="blockedUserDetails(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + result["facebook_id"] + '/picture)"></div><h1>' + result["username"] + '</h1><p>' + result["full_name"] + '</p></div></button>';
+              finalHTML = finalHTML + convoHTML;
+            }
+
+            document.getElementById("blockeduser-results").innerHTML = finalHTML;
+          });
+        }
+        
+      } else {
+        document.getElementById("blockeduser-results").innerHTML = "";
+      }
+    });
+    
+  }
+
+  function loadRequests() {
+    document.getElementById("request-results").innerHTML = "";
+
+    firebase.database().ref("incoming_requests").child(userId).on("value", function(snapshot) {
+      var values = snapshot.val();
+
+      if (values != null) {
+        var keys = Object.keys(values);
+
+        var friendRequests = {};
+
+        for (index in keys) {
+          var key = keys[index];
+
+          firebase.database().ref("users").child(key).on("value", function(snapshot) {
+            var snapVal = snapshot.val();
+            snapVal["userId"] = key;
+            friendRequests[key] = snapVal;
+
+            var finalHTML = "";
+
+            for (var friendKey in friendRequests) {
+              var friend = friendRequests[friendKey];
+
+              var friendId = "'" + friend["userId"] + "'"
+              var convoHTML = '<button style="background: transparent; border: none !important; font-size: 0; width: 100%; text-align: left; display:inline-block;" onclick="acceptFriendRequest(' + friendId + ')"><div class="search-item"><div class="profile-image" style="background-image: url(https://graph.facebook.com/' + friend["facebook_id"] + '/picture)"></div><h1>' + friend["username"] + '</h1><p>' + friend["full_name"] + '</p></div></button>';
+              finalHTML = finalHTML + convoHTML;
+            }
+
+            document.getElementById("request-results").innerHTML = finalHTML;
+          });
+        }
+      } else {
+        document.getElementById("request-results").innerHTML = "";
+      }
+    });
+  }
+
+  function acceptFriendRequest(friendId) {
+    var conf = confirm("Are you sure you want to accept this user's friend request?");
+
+    if (conf == true) {
+      var newFriend = firebase.database().ref("friends").child(friendId).child(userId);
+      newFriend.set(true);
+
+      var newFriend1 = firebase.database().ref("friends").child(userId).child(friendId);
+      newFriend1.set(true);
+
+      var request = firebase.database().ref("incoming_requests").child(userId).child(friendId);
+      request.remove(function(error) {
+        loadRequests();
+      });
+    }
+  }
+
+  function startConvo(friendIdentifier) {
+    // var result = searchResultsRecords[friendIdentifier];
+
+    var username = selectedUser["username"];
+    facebookId = selectedUser["facebook_id"];
+    document.getElementById("chat-title").innerHTML = "Chat with " + username + "...";
+
+    startListeningForChats(friendIdentifier);
+    hideFindFriendsModal();
+  }
+
+  function startFriendConvo(friendIdentifier) {
+    if (friendIdentifier.length > 0) {
+      var result = friendResultsRecords[friendIdentifier];
+      var username = result["username"];
+      facebookId = result["facebook_id"];
+
+      selectedUserId = friendIdentifier;
+      selectedUsername = username;
+
+      document.getElementById("chat-button").innerHTML = "Chat with " + username;
+      document.getElementById("block-button").innerHTML = "Block " + username;
+      document.getElementById("delete-button").innerHTML = "Delete " + username;
+
+      document.getElementById("chat-button").style.opacity = "1.0";
+      document.getElementById("chat-button").style.pointerEvents = "auto";
+
+      document.getElementById("block-button").style.opacity = "1.0";
+      document.getElementById("block-button").style.pointerEvents = "auto";
+
+      document.getElementById("delete-button").style.opacity = "1.0";
+      document.getElementById("delete-button").style.pointerEvents = "auto";
+    } else {
+      selectedUserId = "";
+      selectedUsername = "";
+
+      document.getElementById("chat-button").innerHTML = "Chat";
+      document.getElementById("block-button").innerHTML = "Block";
+      document.getElementById("delete-button").innerHTML = "Delete";
+
+      document.getElementById("chat-button").style.opacity = "0.5";
+      document.getElementById("chat-button").style.pointerEvents = "none";
+
+      document.getElementById("block-button").style.opacity = "0.5";
+      document.getElementById("block-button").style.pointerEvents = "none";
+
+      document.getElementById("delete-button").style.opacity = "0.5";
+      document.getElementById("delete-button").style.pointerEvents = "none";
+    }
+
+    //
+    //
+    //
+    // startListeningForChats(friendIdentifier);
+    // hideFriendsModal();
+  }
+
+  function blockedUserDetails(userIdentifier) {
+      if (userIdentifier.length > 0) {
+        var result = blockedUserResultsRecords[userIdentifier];
+        var username = result["username"];
+        facebookId = result["facebook_id"];
+        console.log(result);
+        console.log(username);
+        console.log(facebookId);
+
+        selectedUserId = userIdentifier;
+        selectedUsername = username;
+
+        document.getElementById("unblock-button").innerHTML = "UnBlock " + username;
+
+        document.getElementById("unblock-button").style.opacity = "1.0";
+        document.getElementById("unblock-button").style.pointerEvents = "auto";
+      } else {
+        selectedUserId = "";
+        selectedUsername = "";
+
+        document.getElementById("unblock-button").innerHTML = "UnBlock";
+
+        document.getElementById("unblock-button").style.opacity = "0.5";
+        document.getElementById("unblock-button").style.pointerEvents = "none";
+      }
+
+      //
+      //
+      //
+      // startListeningForChats(friendIdentifier);
+      // hideFriendsModal();
+    }
+
+  function startChatting() {
+    document.getElementById("chat-title").innerHTML = "Chat with " + selectedUsername + "...";
+
+    startListeningForChats(selectedUserId);
+    hideFriendsModal();
+  }
+
+  function deleteSelected() {
+    var friend = firebase.database().ref("friends").child(userId).child(selectedUserId);
+    friend.remove(function(error) {
+
+      var friend1 = firebase.database().ref("friends").child(selectedUserId).child(userId);
+      friend1.remove(function(error) {
+
+        var conv = firebase.database().ref("conversations").child(userId).child(selectedUserId);
+        conv.remove(function(error) {
+
+          var conv1 = firebase.database().ref("conversations").child(selectedUserId).child(userId);
+          conv1.remove(function(error) {
+            fetchConvos();
+            startFriendConvo("");
+
+            document.getElementById("messages").innerHTML = "";
+            document.getElementById("chat-title").innerHTML = "Select someone to chat with...";
+          });
+        });
+      });
+    });
+  }
+
+  function blockSelected() {
+    var userBlockedFriend = firebase.database().ref("a_blocked_b").child(userId).child(selectedUserId);
+      userBlockedFriend.set(true);
+
+    var friendBlockedByUser = firebase.database().ref("a_blockedby_b").child(selectedUserId).child(userId);
+      friendBlockedByUser.set(true);
+
+    var friend = firebase.database().ref("friends").child(userId).child(selectedUserId);
+    friend.remove(function(error) {
+      console.log("REMOVED F1");
+      // refreshFriendsAndConvos();
+
+      var friend1 = firebase.database().ref("friends").child(selectedUserId).child(userId);
+      friend1.remove(function(error1) {
+        console.log("REMOVED F2");
+        // refreshFriendsAndConvos();
+
+        var conv = firebase.database().ref("conversations").child(userId).child(selectedUserId);
+        conv.remove(function(error2) {
+          console.log("REMOVED C1");
+          // refreshFriendsAndConvos();
+
+          var conv1 = firebase.database().ref("conversations").child(selectedUserId).child(userId);
+          conv1.remove(function(error3) {
+            console.log("REMOVED C2");
+            refreshFriendsAndConvos();
+          });
+        });
+      });
+    });
+  }
+
+  function deleteAccount() {
+    var results = [];
+    var friendResults = {};
+    
+   var friends = firebase.database().ref("friends/" + userId);
+    friends.orderByChild("timestamp").on("value", function(snapshot) {
+      if (snapshot.val() != null) {
+        var snapshotVal = Object.keys(snapshot.val());
+
+        friendResults = {};
+        
+        for (index in snapshotVal) {
+          var friendId = snapshotVal[index];
+          if(friendId != null) {
+            var friendMessages = firebase.database().ref("messages/" + friendId + "_" + userId);
+            friendMessages.remove(function(error) {
+              console.log("REMOVED Friend Messages with User");
+            });
+
+            var userMessages = firebase.database().ref("messages/" + userId + "_" + friendId);
+            userMessages.remove(function(error) {
+              console.log("REMOVED User Messages with Friend");
+            });
+
+            var friendsConv = firebase.database().ref("conversations").child(friendId).child(userId);
+            friendsConv.remove(function(error) {
+              console.log("REMOVED Friend Conversation with User");
+            }); 
+          }
+        }
+      } 
+    });
+
+  
+    for(key in blockedUsersId) {
+      var blockedUserId = blockedUsersId[key];
+      console.log("---"+blockedUserId);
+      var blockedByUsers = firebase.database().ref("a_blockedby_b").child(blockedUserId).child(userId);
+      blockedByUsers.remove(function(error) {
+        console.log("REMOVED user blocked by friend");
+      });
+    }
+
+    var usersBlocked = firebase.database().ref("a_blocked_b").child(userId);
+    usersBlocked.remove(function(error) {
+      console.log("REMOVED Friend blocked by User");
+
+      var allFriends = firebase.database().ref("friends").child(userId);
+      allFriends.remove(function(error) {
+        console.log("REMOVED Friends of User");
+
+        var conv = firebase.database().ref("conversations").child(userId);
+        conv.remove(function(error) {
+          console.log("REMOVED Conversations of User");
+
+          var requests = firebase.database().ref("incoming_requests").child(userId);
+          requests.remove(function(error) {
+            console.log("REMOVED Incoming requests of User");
+
+            signOut();
+            var deleteUserAccount = firebase.database().ref("users").child(userId);
+            deleteUserAccount.remove(function(error) {
+              console.log("REMOVED User");
+            });
+          });
+        });
+      });
+    });
+}
+
+  function refreshFriendsAndConvos() {
+    fetchConvos();
+    startFriendConvo("");
+
+    document.getElementById("messages").innerHTML = "";
+    document.getElementById("chat-title").innerHTML = "Select someone to chat with...";
+  }
+
+  function chatKeyDown() {
+    if (event.keyCode == 13) {
+      console.log("Tjkjsdkf");
+      sendMessage();
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- <button onclick="logIn()">Log In</button>
+  <button onclick="signOut()">Sign Out</button>
+
+  <button onclick="startListeningForChats('Wd9uQDi4KLedSIurLLVBh3NCKPj2')">Get Chats</button>
+  <button onclick="stopListeningForChats()">Off</button> -->
+
+  <div class="header-container">
+    <header class="root-header" style="padding-left: 30px;">
+      <i onclick="searchFriends()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">search</i>
+      <h1 style="float: left; margin-left: 12px;">Conversations</h1>
+    </header>
+
+    <header class="detail-header">
+      <h1 id="chat-title" style="float: left; margin-left: 12px;">Select someone to chat with...</h1>
+      <i onclick="signOut()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; margin-right: 32px; float: right;">power_settings_new</i>
+      <i onclick="viewDeleteAccount()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; margin-right: 32px; float: right;">delete</i>
+      <i onclick="viewBlockedUsers()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; margin-right: 32px; float: right;">not_interested</i>
+      <i onclick="viewRequests()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; margin-right: 32px; float: right;">person_add</i>
+      <i onclick="viewFriends()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; margin-right: 32px; float: right;">people</i>
+    </header>
+  </div>
+
+  <div class="main-container">
+    <div id="conversations" class="convos">
+      <!-- Convos -->
+    </div>
+
+    <div id="messages" class="chats">
+      <!-- Chats -->
+    </div>
+
+    <div class="chat-box">
+      <input id="message-field" onkeydown="chatKeyDown()" placeholder="Type a message..."></input>
+
+      <!-- <button class="send-button-c">
+        <i onclick="sendMessage()" id="send-button" class="material-icons" style="color: #fff; line-height:50px; border: none; background: rgba(0, 0, 0, 0.0);">send</i>
+      </button> -->
+    </div>
+  </div>
+
+  <div id="dialog-bg" class="modal-background"></div>
+
+  <div class="modal-dialog-container">
+    <div id="dialog-main" class="modal-dialog">
+      <header class="dialog-header">
+        <i onclick="hideFindFriendsModal()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">close</i>
+        <!-- <h1 style="float: left; margin-left: 12px;">Search for friends...</h1> -->
+
+        <div class="search-box">
+          <input onkeyup="loadSearchResults()" id="search-field" placeholder="Search for friends..."></input>
+
+          <!-- <button class="send-button-c"> -->
+            <!-- <i onclick="sendMessage()" id="send-button" class="material-icons" style="color: #fff; line-height:50px; border: none; background: rgba(0, 0, 0, 0.0);">send</i> -->
+          <!-- </button> -->
+        </div>
+
+        <!-- <input id="message-field" placeholder="Type a message..."></input> -->
+      </header>
+
+      <div id="results" class="search-results">
+        <!-- Results -->
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-dialog-container">
+    <div id="dialog-friends" class="modal-dialog">
+      <header class="dialog-header">
+        <i onclick="viewFriends()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">close</i>
+        <h1 style="float: left; margin-left: 12px;">Friends</h1>
+
+        <!-- <input id="message-field" placeholder="Type a message..."></input> -->
+      </header>
+
+      <div id="friend-results" class="search-results">
+        <!-- Results -->
+      </div>
+
+      <div class="action-toolbar">
+        <button class="tool-button" id="chat-button" onclick="startChatting()">Chat</button>
+        <button class="tool-button" id="delete-button" onclick="deleteSelected()">Delete</button>
+        <button class="tool-button" id="block-button" onclick="blockSelected()">Block</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-dialog-container">
+    <div id="dialog-blockedusers" class="modal-dialog">
+      <header class="dialog-header">
+        <i onclick="viewBlockedUsers()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">close</i>
+        <h1 style="float: left; margin-left: 12px;">Blocked Users</h1>
+
+        <!-- <input id="message-field" placeholder="Type a message..."></input> -->
+      </header>
+
+      <div id="blockeduser-results" class="search-results">
+        <!-- Results -->
+      </div>
+
+      <div class="action-toolbar">
+        <button class="tool-button" id="unblock-button" onclick="">UnBlock</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-dialog-container">
+    <div id="dialog-deleteaccount" class="modal-dialog">
+      <header class="dialog-header">
+        <i onclick="viewDeleteAccount()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">close</i>
+        <h1 style="float: left; margin-left: 12px;">Delete Account</h1>
+
+        <!-- <input id="message-field" placeholder="Type a message..."></input> -->
+      </header>
+      <div id="request-results" class="search-results">
+        <!-- Results -->
+        <div class="search-item">
+          <H3>This action is irreversible and will delete all your data. Are you sure?</H3>
+        </div>
+      </div>
+      <div class="action-toolbar">
+        <button class="tool-button" id="deleteaccount-button" onclick="deleteAccount()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-dialog-container">
+    <div id="dialog-requests" class="modal-dialog">
+      <header class="dialog-header">
+        <i onclick="viewRequests()" id="compose-button" class="material-icons" style="color: #fff; line-height:64px; float: left;">close</i>
+        <h1 style="float: left; margin-left: 12px;">Requests</h1>
+
+        <!-- <input id="message-field" placeholder="Type a message..."></input> -->
+      </header>
+
+      <div id="request-results" class="search-results">
+        <!-- Results -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>

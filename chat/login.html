@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<head>
+	<title>Modal</title>
+
+	<style>
+	* {
+		-webkit-font-smoothing: antialiased;
+		-moz-font-smoothing: antialiased;
+		font-smoothing: antialiased;
+	}
+
+	.login-container {
+		width: 100%;
+	}
+
+	.facebook-login-button {
+		position: relative;
+		display: block;
+
+		margin-top: 20px;
+
+		width: 400px;
+		height: 56px;
+
+		margin-left: auto;
+		margin-right: auto;
+
+		border-radius: 8px;
+		border: 0px solid #000;
+
+		background: #3F51B5;
+
+		color: #fff;
+
+		font-family: 'Helvetica Neue', sans-serif;
+		font-size: 21px;
+		font-weight: normal;
+	}
+
+	.bitroad-logo {
+		position: relative;
+		margin-top: 40px;
+
+		width: 256px;
+		height: 256px;
+
+		margin-left: auto;
+		margin-right: auto;
+
+		background-image: url('Globe@3x.png');
+		background-size: 256px 256px;
+
+		clear: both;
+	}
+
+	.username-field-container {
+		clear: both;
+
+		position: relative;
+		margin-top: 30px;
+		width: 400px;
+
+		margin-left: auto;
+		margin-right: auto;
+
+		box-sizing: border-box;
+		-moz-box-sizing : border-box;
+	}
+
+	.username-field {
+		width: 100%;
+		/*height: 24px;*/
+
+		padding-top: 8px;
+		padding-bottom: 8px;
+		box-sizing: border-box;
+		-moz-box-sizing : border-box;
+
+		font-family: 'Helvetica Neue', sans-serif;
+		font-size: 21px;
+		font-weight: normal;
+
+		outline: none;
+
+		border: 0px solid rgba(0, 0, 0, 0.0);
+		border-bottom: 2px solid rgba(235, 235, 235, 1.0);
+
+		-webkit-transition: border-bottom 0.3s ease;
+		-moz-transition: border-bottom 0.3s ease;
+		transition: border-bottom 0.3s ease;
+	}
+
+	.username-field:focus {
+		border-bottom: 2px solid rgba(63, 81, 181, 1.0);
+	}
+	</style>
+
+	<script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js"></script>
+	<script>
+	// Initialize Firebase
+	var config = {
+		apiKey: "AIzaSyBYbY5UaVQh-ZUbXCwWKe2OiEOS0-ljE1Q",
+		authDomain: "project-3068965894659563289.firebaseapp.com",
+		databaseURL: "https://project-3068965894659563289.firebaseio.com",
+		storageBucket: "project-3068965894659563289.appspot.com",
+		messagingSenderId: "844316448558"
+	};
+	firebase.initializeApp(config);
+
+	firebase.auth().onAuthStateChanged(function(user) {
+		if (user) {
+			// window.location = "index.html";
+		} else {
+			// alert("Invalid Login");
+		}
+	});
+
+	function login() {
+		var username = document.getElementById("username-field").value;
+		var provider = new firebase.auth.FacebookAuthProvider();
+
+		firebase.auth().signInWithPopup(provider).then(function(result) {
+			var token = result.credential.accessToken;
+
+			var user = result.user;
+			var facebookId = user.providerData[0].uid;
+			var displayName = user.providerData[0]["displayName"];
+
+			var defaultFirstName = "-";
+			var defaultLastName = "-";
+
+			var components = displayName.split(" ");
+
+			if (components[0] != undefined) {
+				defaultFirstName = components[0];
+			}
+
+			if (components[1] != undefined) {
+				defaultLastName = components[1];
+			}
+
+			console.log(facebookId);
+
+			if (username.length > 0) {
+				var users = firebase.database().ref("users");
+				users.orderByChild("facebook_id").equalTo(facebookId).on("value", function(snapshot) {
+					var value = snapshot.val();
+
+					if (value == null) {
+						var usersExist = firebase.database().ref("users");
+						usersExist.orderByChild("username").equalTo(username).on("value", function(snapshot) {
+							var existValue = snapshot.val();
+
+							if (existValue == null) {
+								var newUser = firebase.database().ref().child("users").push();
+								newUser.set({
+									username: username,
+									badge_count: 0,
+									facebook_id: facebookId,
+									first_name: defaultFirstName,
+									full_name: displayName,
+									lastName: defaultLastName
+								}, function(error) {
+									console.log("DOONE + ");
+									console.log(newUser);
+									window.location = "index.html#home";
+								});
+							} else {
+								window.location = "login.html#loginerror";
+							}
+						});
+					} else {
+						var usersExist = firebase.database().ref("users");
+						usersExist.orderByChild("username").equalTo(username).on("value", function(snapshot) {
+							var existValue = snapshot.val();
+
+							if (existValue != null) {
+								window.location = "index.html#valhome";
+							}
+						});
+					}
+				});
+			} else {
+				alert("Please enter your username.");
+			}
+
+			// var users = firebase.database().ref("users");
+			// users.orderByChild("facebook_id").equalTo(facebookId).on("value", function(snapshot) {
+			// 	var value = snapshot.val();
+			// 	var displayName = user.providerData[0]["displayName"];
+			//
+			// 	var defaultFirstName = "-";
+			// 	var defaultLastName = "-";
+			//
+			// 	var components = displayName.split(" ");
+			//
+			// 	if (components[0] != undefined) {
+			// 		defaultFirstName = components[0];
+			// 	}
+			//
+			// 	if (components[1] != undefined) {
+			// 		defaultLastName = components[1];
+			// 	}
+			// 	//
+			// 	// if (Object.keys(value).length > 0) {
+			// 	// 	window.location = "index.html";
+			// 	// } else {
+			// 	//
+			// 	// }
+			//
+			// 	if (value != null) {
+			// 		if (Object.keys(value).length == 0) {
+			//
+			// 			} else {
+			// 				// window.location = "login.html";
+			// 			}
+			// 		} else {
+			// 			// window.location = "login.html";
+			// 		}
+			// 	} else {
+			// 		// window.location = "index.html";
+			// 	}
+			//
+			// 	// if (value == null) {
+			// 	// 	if (Object.keys(value).length <= 0) {
+			// 	// 		if (username.length > 0) {
+			// 	// 			var newUser = firebase.database().ref().child("users").push();
+			// 	// 			newUser.set({
+			// 	// 				username: username,
+			// 	// 				badge_count: 0,
+			// 	// 				facebook_id: facebookId,
+			// 	// 				first_name: defaultFirstName,
+			// 	// 				full_name: displayName,
+			// 	// 				last_name: defaultLastName
+			// 	// 			}, function (error) {
+			// 	// 				// if (!error) {
+			// 	// 					window.location = "index.html";
+			// 	// 				// }
+			// 	// 			});
+			// 	// 		} else {
+			// 	// 			window.location = "login.html";
+			// 	// 		}
+			// 	// 	} else {
+			// 	// 		window.location = "login.html";
+			// 	// 	}
+			// 	// } else {
+			// 	// 	window.location = "login.html";
+			// 	// }
+			// });
+		});
+
+		// .catch(function(error) {
+		// 	var errorCode = error.code;
+		// 	var errorMessage = error.message;
+		// 	console.log(errorMessage);
+		// });
+		// });
+	}
+	</script>
+</head>
+
+<body>
+	<div class="login-container">
+		<div class="bitroad-logo"></div>
+
+		<div class="username-field-container">
+			<input class="username-field" id="username-field" placeholder="Type a unique username..." type="text"></input>
+		</div>
+
+		<button class="facebook-login-button" onclick="login()">Login With Facebook</button>
+	</div>
+</body>
+</html>

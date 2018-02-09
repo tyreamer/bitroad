@@ -1,0 +1,13 @@
+<div class="row"><div id="footer-page" class="col-xs-12" style="padding-top: 10px"><div class="col-xs-12">	<ul id="about" style="text-align: center;">		<li style="display: inline; padding: 0px 15px 0px 15px"> <a href= "about.php"> About </a></li>		<li style="display: inline; padding: 0px 15px 0px 15px"> <a href= "contact.php"> Contact </a>  </li>		<li style="display: inline;padding: 0px 15px 0px 15px"> <a href= "termsofservice.php"> Terms </a>  	</li>		<li style="display: inline;padding: 0px 15px 0px 15px"> <a href= "privacy.php"> Privacy </a>  	</li><li style="display: inline;padding: 0px 15px 0px 15px"> <a href= "safety.php"> Safety </a>  	</li><li style="display: inline;padding: 0px 15px 0px 15px"> <a href= "prohibited.php"> Prohibited </a>  	</li></ul></div></div></div>
+<div class="row"><center>&copy; <span id="date"></span> Bit Road</center></div>
+
+
+<script>
+	// Return today's date and time
+	var currentTime = new Date();
+
+	// returns the year (four digits)
+	var year = currentTime.getFullYear();
+	
+	document.getElementById('date').innerHTML= year;
+</script>

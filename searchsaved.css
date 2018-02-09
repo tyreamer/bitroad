@@ -1,0 +1,45 @@
+
+#search-header {
+	background-color: #eee;
+}
+
+.favorite-icon:hover {
+	color: red;
+}
+
+#left-header h4, i {
+	display: inline;	
+}
+
+#left-header {
+	float: left;
+	padding: 10px;
+	max-height: 100%;
+	line-height: 50px;
+	margin-top: 10px;
+}
+
+#right-header {
+	float: right;
+	padding: 10px;
+	max-height: 100%;
+}
+
+#right-header img {
+	max-height: 100%;
+}
+
+#search-bar {
+	width: 100%;
+}
+
+#post-search hr{
+	margin: 0;
+	padding: 0;
+}
+
+.list-group-item:hover {
+	cursor: pointer;
+	background-color: #66afe9;
+}
+

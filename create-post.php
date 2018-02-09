@@ -1,0 +1,688 @@
+<?php
+	require_once("./include/membersite_config.php");
+	
+	// Make sure we have a location set
+	if (isset($_GET['loc']) && $_GET['loc'] != NULL)
+	{
+		$location = $_GET['loc'];
+	}
+	else {
+		$fgmembersite->RedirectToURL('index.php');
+	}
+	
+	
+	//Get all categories
+	$categories = $fgmembersite->getCategories();
+
+	//Get all subcategories
+	$subcategories = $fgmembersite->getSubCategories();
+	
+	
+	
+?>
+
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:url"           content="http://www.bitroad.org/" />
+  <meta property="og:type"          content="website" />
+  <meta property="og:title"         content="Bit Road" />
+  <meta property="og:description"   content="" />
+  <meta property="og:image" content="http://bitroad.org/images/logo.jpg" />
+
+  <title>Bit Road</title>
+
+<!-- Bootstrap core CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="mainStyle.css">
+<link rel="stylesheet" type="text/css" href="upload.css">
+<link rel="icon" href="images/smallLogo.jpg">
+<script src='https://www.google.com/recaptcha/api.js'></script>
+ 
+</head>
+<body>
+
+<div class="col-lg-2 col-sm-2"></div>
+<div class="col-lg-8 col-sm-8 jumbotron" id="create-post-header">
+<div class="row">
+	<div class="col-xs-1"></div>
+	<div class="col-xs-10">
+		<a href="home.php?loc=<?php echo $location ?>"><button class="btn btn-default"> <i class="glyphicon glyphicon-menu-left"></i> Return to Main Page </button></a>
+		<a href="saved.php" style="float: right; clear: left;"><h2 class="glyphicon glyphicon-heart" style="color: red" ></h2></a>
+	</div>
+	<div class="col-xs-1"></div>
+</div>
+		<h2><center> Create an Ad </center> </h2>
+		<hr/>
+		<br/>
+		<div id="details-area">
+			<div class="inputs col-lg-8 col-lg-offset-2">
+				<form class="form-horizontal" id="create-post-details" method="POST" action="insertPost.php" enctype="multipart/form-data">					
+					<div class="row"> <center><small>Fields marked with a (*) are required.</small></center></div>
+					<br/>
+							<span class="col-xs-9 col-xs-offset-3 alert alert-danger absolute-center" id="error">We noticed some invalid data. Please correct the information and try again.<br/></span>	
+					<div class="form-group">													  
+							  <label for="name" class="col-xs-3 control-label">Chat Name: </label> 
+							  <div class="col-xs-9">
+								<input type="text" class="form-control valid" name="name" id="name" maxlength="50"> </input>	
+							</div>
+					</div> 
+					<div class="form-group">		
+							 <label for="email" class="col-xs-3 control-label">Email:</label>
+							 <div class="col-xs-9">
+								<input type="text" class="form-control valid"  name="email" id="email" maxlength="50"> </input>
+							</div>
+					</div>
+					<div class="form-group">	
+							 <label for="number" class="col-xs-3 control-label">*Phone:</label>
+							<div class="col-xs-5 col-sm-4">
+								<input type="text" class="form-control"  maxlength=25 name="number" id="number" placeholder="XXX-XXX-XXXX" required="required" maxlength="10"> </input>								
+							</div>
+							<div class="col-xs-4 col-sm-4">
+								<input type="checkbox" class="valid" id="displayPhone" name="displayPhone" value="1"> Visible on listing </label>	
+							</div>						
+					</div>
+					<div class="form-group">										
+						 <label for="location" class="col-xs-3 control-label">Specific Location: </label>
+						 <div class="col-xs-9">
+							<input type="text" class="form-control valid"  name="spec_location" id="spec_location" maxlength="50"> </input>
+						</div>
+					</div>
+					<div class="form-group">												
+						<label for="category" class="col-xs-3 control-label">*Category:</label>
+						  <div class="col-xs-9 col-sm-4">
+							<select class="form-control" id="category" name="category" required>
+								<option selected="true" disabled = "disabled" disabled>Select a category</option>				
+								<?php 
+								for ($i = 0; $i < sizeOf($categories); $i++) 
+								{
+									if ($categories[$i]["category_name"] != "") 
+									{
+								?>
+									
+									<option value="<?php echo $categories[$i]["category_name"];?>"> <?php echo $categories[$i]["category_name"];?></option>
+								<?php	
+									}								
+								}
+								?>
+							</select>
+						 </div>
+					</div>
+					<!--  Subcategory 
+						<div class="form-group">	
+							 <label for="subcategory" class="col-xs-3 control-label">Sub-Category:</label>
+							 <div class="col-xs-9">
+								<select class="form-control" id="subcategory" name="subcategory">
+									<option class="selectSubCat" selected="true" disabled = "disabled" disabled>Select a sub-category</option>			
+								</select>
+							 </div>
+						</div> 
+					-->					
+					<div class="form-group">							
+						<label for="title" class="col-xs-3 control-label">*Title:</label>
+						<div class="col-xs-9">
+							<input type="text" class="form-control"  name="title" id="title" ></input>
+						</div>
+						
+					</div>					
+					<div class="form-group">
+						<label for="combobox" class="col-xs-3 control-label">*Currency:</label>
+						 <div class="col-xs-9 col-sm-4">						
+							<div class="ui-widget">
+								<select class="form-control invalid" id="combobox" name="currency" id="currency" required></select>
+							</div>
+						 </div>
+					</div>
+					<div class="form-group">		
+						<label for="price" class="col-xs-3 control-label">*Price:</label>
+						 <div class="col-sm-4 col-xs-9">
+							<input type="text" class="form-control"  name="price" id="price" required="required"> </input>
+						 </div>
+					</div>
+					<div class="form-group">
+						<label for="images" class="col-xs-3 control-label">Images:</label>
+						<div class="col-xs-9 imageUploadSection">
+							<label class="btn btn-default btn-file">
+								<input type='file' class="imageUpload valid" style="display: none"; id="file" name="file[]" multiple="true" />
+								<i class="glyphicon glyphicon-cloud-upload" style="padding-right: 5px;"></i>Select Images </label>								
+								<button type="button" class="btn btn-danger btn-sm glyphicon glyphicon-trash" id="remove"></button>
+								<div class="imageOutput" style="overflow-y: auto; overflow-x: hidden; max-height: 150px;"></div>								
+						</div>
+					</div>
+					
+					<div class="form-group">														
+						<label for="description" class="col-xs-3 control-label">*Description:</label><div class="col-xs-9"><textarea type="text" class="form-control" rows= 6 name="description" id="description" maxlength="400" required></textarea></div>
+					</div>
+					<div class="form-group">
+						<div class="checkbox absolute-center">
+						  <label class="valid"><input type="checkbox" class="valid" id="noSpam" name="noSpam" value="1">Do not allow others to contact me with unsolicited services or offers. </label>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="g-recaptcha absolute-center valid" data-sitekey="6LdDkScTAAAAAFZ69OLGRoKlY_s2I7JNbSubWYXU"></div>						
+					</div>
+					<div class="form-group">
+						<div class="absolute-center">							
+							<!-- Perform a string replace on the location to remove the comma -->
+							<input type="text" class="valid"  name="location" id="location" style="display: none;" value="<?php echo $location ?>"> </input>
+							<img src="images/loading.gif" id="loading">	
+							<input type="submit" id="submit" class="btn btn-primary" name="submit">						
+						</div>
+					</div>
+				</form>		
+			</div>				
+		</div>
+</div>
+<div class="col-lg-2 col-sm-2"><span class="results"></span></div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+ <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<script>
+
+//AutoComplete Functionality
+  $( function() {
+    $.widget( "custom.combobox", {
+      _create: function() {
+        this.wrapper = $( "<span>" )
+          .addClass( "custom-combobox" )
+          .insertAfter( this.element );
+ 
+        this.element.hide();
+        this._createAutocomplete();
+        this._createShowAllButton();
+      },
+ 
+      _createAutocomplete: function() {
+        var selected = this.element.children( ":selected" ),
+          value = selected.val() ? selected.text() : "";
+ 
+        this.input = $( "<input>" )
+          .appendTo( this.wrapper )
+          .val( value )
+		  .attr("id", "custom-combobox-input")
+		  .attr("name", "custom-combobox-input")
+          .attr( "title", "" )
+		  .attr("required", "required")
+          .addClass( "custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left" )
+          .autocomplete({
+            delay: 0,
+            minLength: 0,
+            source: $.proxy( this, "_source" )
+          })
+          .tooltip({
+            classes: {
+              "ui-tooltip": "ui-state-highlight"
+            }
+          });
+ 
+        this._on( this.input, {
+          autocompleteselect: function( event, ui ) {
+            ui.item.option.selected = true;
+            
+				$("#combobox").trigger("change");
+			this._trigger( "select", event, {
+              item: ui.item.option			
+			  });
+          },
+ 
+          autocompletechange: "_removeIfInvalid"
+        });
+		
+      },
+ 
+      _createShowAllButton: function() {
+        var input = this.input,
+          wasOpen = false;
+ 
+        $( "<a>" )
+          .attr( "tabIndex", -1 )
+          .attr( "title", "Show All Items" )
+          .tooltip()
+          .appendTo( this.wrapper )
+          .button({
+            icons: {
+              primary: "ui-icon-triangle-1-s"
+            },
+            text: false
+          })
+          .removeClass( "ui-corner-all" )
+          .addClass( "custom-combobox-toggle ui-corner-right" )
+          .on( "mousedown", function() {
+            wasOpen = input.autocomplete( "widget" ).is( ":visible" );
+          })
+          .on( "click", function() {
+            input.trigger( "focus" );
+ 
+            // Close if already visible
+            if ( wasOpen ) {
+              return;
+            }
+ 
+            // Pass empty string as value to search for, displaying all results
+            input.autocomplete( "search", "" );
+          });
+      },
+ 
+      _source: function( request, response ) {
+        var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+        response( this.element.children( "option" ).map(function() {
+          var text = $( this ).text();
+          if ( this.value && ( !request.term || matcher.test(text) ) )
+            return {
+              label: text,
+              value: text,
+              option: this
+            };
+        }) );
+      },
+ 
+      _removeIfInvalid: function( event, ui ) {
+ 
+        // Selected an item, nothing to do
+        if ( ui.item ) {
+          return;
+        }
+ 
+        // Search for a match (case-insensitive)
+        var value = this.input.val(),
+          valueLowerCase = value.toLowerCase(),
+          valid = false;
+        this.element.children( "option" ).each(function() {
+          if ( $( this ).text().toLowerCase() === valueLowerCase ) {
+            this.selected = valid = true;
+            return false;
+          }
+        });
+ 
+        // Found a match, nothing to do
+        if ( valid ) {
+          return;
+        }
+ 
+        // Remove invalid value
+        this.input
+          .val( "" )
+          .attr( "title", " didn't match any item" )
+          .tooltip( "open" );
+        this.element.val( "" );
+        this._delay(function() {
+          this.input.tooltip( "close" ).attr( "title", "" );
+        }, 2500 );
+        this.input.autocomplete( "instance" ).term = "";
+      },
+ 
+      _destroy: function() {
+        this.wrapper.remove();
+        this.element.show();
+      }
+    });
+		
+    $( "#combobox" ).combobox();	
+    $( "#toggle" ).on( "click", function() {      
+	  $( "#combobox" ).toggle();
+    });
+  } );
+//END AutoComplete
+ 
+//Numeric entries	
+$('#price').bind('keypress', function (event) {
+	var regex = /^(\d*\.?\d*)$/;
+    if (!regex.test(String.fromCharCode(event.charCode))){
+       event.preventDefault();
+       return false;
+    }	
+});
+
+$('#number').bind('keypress', function (event) {
+    var regex = new RegExp("^[0-9]+$");
+    var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+    if (!regex.test(key)) {
+       event.preventDefault();
+       return false;
+    }
+});
+//End Numeric Entries
+
+//Image Upload for Posts
+	$images = $('.imageOutput');
+	
+	$(".imageUpload").change(function(event){
+		readURL(this);
+	});
+	
+	//Remove 
+	$("#remove").click(function()
+	{
+		$('.imgContainer').remove();
+		$("#remove").hide();
+	});	
+
+
+	function readURL(input) {
+		var numFiles = $("input:file")[0].files.length;
+		var currFiles = $(".imgContainer").length;
+		
+		//Make sure we have images, but no more than 10
+		if (input.files && input.files[0] && (currFiles + numFiles) <= 10) {	
+			$.each(input.files, function() {
+				var reader = new FileReader();
+				reader.onload = function (e) {           
+					$images.append('<div class="col-md-4 col-xs-12 imgContainer"><img class="thumbnail" style="max-height: 150px; display: inline;" src="'+ e.target.result+'" /></div>')
+					$('#remove').show();
+				}
+				reader.readAsDataURL(this);								
+			});			
+		}
+		
+		//Clone the input (reset it)
+		else {
+			alert('Posts are restricted to 10 images maximum.');
+			var control = $("#file");
+			control.replaceWith( control = control.clone( true ) );
+			$('.imgContainer').remove();
+			$('#remove').hide();
+		}
+	}
+//End Image Upload for Posts
+
+
+//Currency
+    var currencies = [];
+	$.getJSON( "https://api.coinmarketcap.com/v1/ticker/", function( data ) {
+	  var items = [];
+	  var  i = 0;
+	  $.each( data, function( key, val ) {
+		  items.push( "<option value='" + val.id + "'>" + val.id + "</option>" );
+          currencies.push(val.id);
+      });	
+	  $("#combobox").append(items);
+	});
+//End Currency
+  
+//Form Validation
+
+$('#category').change(function() {
+	var input=$(this);
+	input.removeClass("invalid").addClass("valid");
+});
+
+$('#number').keyup(function(event) {
+	var input=$(this);
+	var message=$(this).val();
+	console.log(message);
+	if(message){input.removeClass("invalid").addClass("valid");}
+	else{input.removeClass("valid").addClass("invalid");}	
+});
+
+$('#title').keyup(function(event) {
+	var input=$(this);
+	var message=$(this).val();
+	console.log(message);
+	if(message){input.removeClass("invalid").addClass("valid");}
+	else{input.removeClass("valid").addClass("invalid");}	
+});
+
+$('#price').keyup(function(event) {
+	var input=$(this);
+	var message=$(this).val();
+	console.log(message);
+	if(message){input.removeClass("invalid").addClass("valid");}
+	else{input.removeClass("valid").addClass("invalid");}	
+});
+
+
+$('#description').keyup(function(event) {
+	var input=$(this);
+	var message=$(this).val();
+	console.log(message);
+	if(message){input.removeClass("invalid").addClass("valid");}
+	else{input.removeClass("valid").addClass("invalid");}	
+});
+
+$('#combobox').change(function(event) {	
+    var input = $(this);
+    var message = input.val();
+    if (currencies.indexOf(message) >= 0) {
+	  input.removeClass("invalid").addClass("valid");
+	  $('#custom-combobox-input').removeClass("invalid").addClass("valid");
+	  $('.custom-combobox').removeClass("invalid").addClass("valid");
+    }
+    else {
+        input.removeClass("valid").addClass("invalid");
+		$('#custom-combobox-input').removeClass("valid").addClass("invalid");
+		$('.custom-combobox').removeClass("valid").addClass("invalid");
+    }
+});
+
+$("#submit").click(function(event){
+
+	var $myForm = $('#create-post-details');
+	if (!$myForm[0].checkValidity()) {
+	  // If the form is invalid, submit it. The form won't actually submit;
+	  // this will just cause the browser to display the native HTML5 error messages.
+	  $myForm.find(':submit').click();
+	}
+
+	//First check captcha
+	else {
+		$('.error-specific').parent().remove(); 
+		var form_data=$("#create-post-details").serializeArray();
+		var error_free=true;		 
+		 
+		 for (var input in form_data){
+			var element=$("#"+form_data[input]['name']);
+			var valid=element.hasClass("valid");
+				
+			//TODO fix for currency validation
+			if (form_data[input]['name'] == 'currency') 
+			{
+				if ($('#combobox').hasClass('valid'))
+				{
+					valid = true;
+				}
+			} 
+							
+			
+			if (!valid && form_data[input]['name'] != 'noSpam' && form_data[input]['name'] != 'g-recaptcha-response')
+				{
+					$('#error').append('<span id="error-spec"><span class="error-specific">Invalid ' + '<b>' + form_data[input]['name'] + "</b></span><br/></span>");  
+					$('#error').show(); 
+					error_free=false;
+				}
+			else
+				{
+					$('#error').hide();
+				}
+			} 
+			
+		if (!error_free){
+			event.preventDefault(); 
+			$('#error').show();
+		}
+		else {
+
+			console.log("Doing captcha and phone verification");
+			if(checkCaptcha()) {
+				 //$( "#submit" ).attr("disabled", "disabled");
+				 $( "#submit" ).hide();
+				 $('#loading').show();
+			}	
+			else {
+				//$('#error').show();
+				return false;
+			}
+		}
+	}
+
+});
+
+//END Form Validation
+  
+  
+  
+//Recaptcha
+function checkCaptcha() {
+	var verificationStatus = false;
+    /* Check if the captcha is complete */
+    if ($("#g-recaptcha-response").val()) {
+        $.ajax({
+            type: 'POST',
+            url: "verifyRecaptcha.php", // The file we're making the request to
+            dataType: 'html',
+            async: false,
+            data: {
+                captchaResponse: $("#g-recaptcha-response").val() // The generated response from the widget sent as a POST parameter
+            },
+            success: function (data) {
+            	 
+				 var phone=  $('#number').val();
+				 var category = $('#category').val();
+				 var location = $('#location').val();
+				 
+				 console.log("Preventing spam posts for " + phone + "-" + category + "-" + location);
+				 
+				 $.ajax
+					({ 
+						url: 'preventSpam.php',
+						 type: "POST",
+						  data: {phone:phone, category:category, location:location},
+						  success: function(msg){										 
+							  console.log(msg);
+							  
+							  if (msg) {
+							  console.log("Doing phone verification");
+								var phone_number = $('#number').val();
+								verificationStatus = false;
+								$.ajax({
+										type: 'POST',
+										url: "sms.php", 
+										dataType: 'json',
+										async: false,
+										data: {
+											phone_number : phone_number
+										},
+										success: function (data) {
+										   verificationStatus = compareCode(data.verification_code);
+										},
+										error: function (XMLHttpRequest, textStatus, errorThrown) {
+											$('#error').append('<span id="error-spec"><span class="error-specific">Unable to send verification code to specified Phone Number.</span><br/></span>');  
+											$('#error').show(); 
+											verificationStatus = false;
+										}
+									});
+							  }
+							  else {
+								  $('#error').append('<span id="error-spec"><span class="error-specific">You are posting too often in ' + category + ' for ' + location + '.</b></span><br/></span>'); 
+									 $('#error').show(); 
+								return false;
+							  }
+							   if (verificationStatus){console.log("Verified");}
+							  return verificationStatus; // return verificationStatus;							  
+						  },
+						  error: function (msg) {							
+							  $('#error').append('<span id="error-spec"><span class="error-specific">Something went wrong. Please try again.</b></span><br/></span>'); 
+							  $('#error').show(); 
+							return false;
+						  }
+					}); 
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+			   $('#error').append('<span id="error-spec"><span class="error-specific">Invalid Captcha</span><br/></span>"');  
+			   $('#error').show(); 
+			   return false;
+            }
+        });
+    } else {
+        alert("Please fill the captcha!");
+        verificationStatus = false;
+    }
+    return verificationStatus;
+};
+
+//END Recaptcha
+  
+  
+function isPhoneNumberVerified() {
+	var phone_number = $('#number').val();
+	var verificationStatus = false;
+	$.ajax({
+            type: 'POST',
+            url: "sms.php", 
+            dataType: 'json',
+            async: false,
+            data: {
+                phone_number : phone_number
+            },
+            success: function (data) {
+               verificationStatus = compareCode(data.verification_code);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            	console.log("error");
+            	console.log(textStatus);
+            	console.log(errorThrown);
+            	$('#error').append('<span id="error-spec"><span class="error-specific">Unable to send verification code to specified Phone Number.</span><br/></span>');  
+			   	$('#error').show(); 
+			   verificationStatus = false;
+            }
+        });
+
+	return verificationStatus;
+};
+
+function compareCode(generatedCode) {
+	var enteredCode = prompt("Verification Code sent. Enter below to verify");
+    if (enteredCode == generatedCode){
+       return true;
+    }
+    else {
+    	$('#error').append('<span id="error-spec"><span class="error-specific">Invalid ' + '<b>' + "Verification Code" + "</b></span><br/>Submit again to resend the code.</span>");  
+		$('#error').show();
+    	return false;
+    }
+}
+//Sub Category Code
+/* $( "#category" ).change(function() {
+		id = $( "#category" ).val();			
+		
+		//Make sure they select a subcategory
+		$("#subcategory")[0].selectedIndex = 0;
+		$( "#submit" ).attr("disabled", "disabled");
+	
+		$.ajax
+		({ 
+			url: 'getSubCategories.php',
+			 type: "POST",
+			  data: "id=" + id,
+			  success: function(data)
+			  {	
+				//Add subcategories based on category selection
+				$("#subcategory").find('.subCategory').remove();
+				$("#subcategory").append(data);
+			  }
+		}); 		
+});
+
+//Disable submit until subcategory is selected		
+$( "#subcategory" ).change(function() {
+	var str = "";
+	$( "select option:selected" ).each(function() {
+	  str += $( this ).text() + " ";
+	});
+	$( "#submit" ).removeAttr('disabled');
+  })
+*/
+  
+</script>
+ 
+</body>
+</html>
+

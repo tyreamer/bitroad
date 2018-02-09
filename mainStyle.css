@@ -1,0 +1,472 @@
+body {
+	margin: 2% 0% 2% 0%;
+	 text-transform: lowercase;
+}
+
+button, input {
+	text-transform: lowercase;
+}
+
+.absolute-center {
+	/* Internet Explorer 10 */
+	display:-ms-flexbox;
+	-ms-flex-pack:center;
+	-ms-flex-align:center;
+
+	/* Firefox */
+	display:-moz-box;
+	-moz-box-pack:center;
+	-moz-box-align:center;
+
+	/* Safari, Opera, and Chrome */
+	display:-webkit-box;
+	-webkit-box-pack:center;
+	-webkit-box-align:center;
+
+	/* W3C */
+	display:box;
+	box-pack:center;
+	box-align:center;
+
+}
+
+#openbazaar-img:hover {
+	cursor: pointer;
+}
+
+.ui-helper-hidden-accessible {
+	display: none;
+}
+
+#home-categories td,thead,tr{
+  border: none;
+}
+
+#home-categories td {
+	padding: 15px 20px 5px 20px;
+}
+
+#mobile-search-form {
+	display: none !important;
+}
+
+#main-search-form {
+	display: block !important;
+	max-width: 200px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.modal {
+	text-transform: none;
+}
+
+
+#footerDiv {
+  height: 50px;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  z-index: 150;
+}
+
+/* Search Page */
+.glyphicon-remove-sign:hover {
+  cursor: pointer;
+}
+
+.button:hover {
+  cursor: pointer;
+}
+
+/* End Search Page */
+
+#main-content table, thead, tr, tbody, th, td {
+    text-align: center;
+}
+
+#main-content  .table-responsive{
+	border-top: none !important;
+	border-left: none !important;
+	border-right: none !important;
+}
+
+.table td {
+   text-align: center;   
+}
+
+#selection-table {
+	width: 100%;
+	text-align: center;
+	margin: 0;
+}
+
+#logo-container {
+	max-width: 100%;
+	width: 100%;
+	margin: 0;
+}
+
+#logo {
+	max-width: 100px;
+	max-height: 100px;
+}
+
+#search {
+	max-width: 100%;
+	width: 100%;
+}
+
+#post-btn {
+	margin-right: auto;
+	margin-left: auto;
+	width: 125px;
+}
+
+.mobile-fix {
+	display: none !important;
+}
+
+.main-search {
+	padding: 2%;
+	margin-right: auto;
+	margin-left: auto;
+	width: 130px;
+	border-radius: 10px;
+}
+
+#share-buttons img {
+	width: 25px;
+	padding: 5px;
+	border: 0;
+	box-shadow: 0;
+	display: inline !important;	
+}
+
+#share-buttons-modal img{
+	width: 45px;
+	padding: 5px;
+	border: 0;
+	box-shadow: 0;
+	display: inline !important;
+}
+
+
+/* Hide the arrow on dropdown */
+#category-dropdown {
+	display: none;
+   -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 2px 20px 2px 2px;
+    border: none;
+	overflow-y: auto;
+	width: 100%;
+	background-color: #eee;
+}
+
+#home-categories-mobile {
+  display: none !important;
+}
+
+#home-categories-mobile td{
+align: left;
+text-align: left;
+padding: 15px 5px 15px 5px;
+}
+
+ #home-categories tr{
+  background-color: transparent;
+}
+
+ #home-categories a:hover{
+  background-color: transparent;
+  text-decoration: none;
+}
+
+#home-categories-mobile td:hover {
+  cursor: pointer;
+  background-color: #9dbbd6;
+}
+
+#category-dropdown option:hover{
+	background-color: #eee;
+	cursor: pointer;
+	width: 100%;
+}
+
+#cl-mobile {
+	display: none;
+}
+
+
+#sidebar-left {
+	 display: inline-block;
+}
+
+#sidebar-left .input-group-addon {
+	background-color: white;
+}
+
+#sidebar-right-top {
+	 height: 50px;
+}
+
+#sidebar-right-bottom {
+	 height: 550px;
+	 border-radius: 10px;
+	 overflow-y: auto;
+	 overflow-x: hidden;
+}
+
+#header {
+	margin-bottom: 2%;
+}
+
+
+#bottom-left-sidebar {	
+    font-size: 18px;	
+}
+
+#about {
+	list-style-type: none;
+	padding: 0px;
+	width: 100%;
+}
+
+#about li {
+	text-align: center;
+}
+
+
+#main-content {
+	padding: 2%;
+	margin: 0%;
+	background-color: #fff;
+	height: 600px;
+}
+
+#crypto-images {
+	padding-top: 10px;
+}
+
+
+/* AutoComplete */
+ .custom-combobox {
+	position: relative;
+	display: inline-block;  
+	width: 100%;
+  }
+  .custom-combobox-toggle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin-left: -1px;
+	padding: 0;
+  }
+  .custom-combobox-input {
+	margin: 0;
+	padding: 5px 10px;	
+	width: 100%;
+  }
+  
+  #loading {
+	  display: none;
+  }
+  
+  #error {
+	  display: none;
+  }
+  
+  #remove {
+	  display: none;
+  }
+  
+  /* Search */
+  .search-listing a:hover {
+	  text-decoration: none; 
+  }
+  
+  .search-listing:hover{
+	  background-color: white !important;
+	  outline: 2px solid #428bca !important;
+  }
+  
+  .search-listing .panel-body {
+	  padding: 5px;
+  }
+  
+  .search-listing .glyphicon-heart:hover{
+	  cursor: pointer;
+	  z-index: 150;
+  }
+  
+  #post-ad-mobile {
+		display: none;
+	}
+	
+	#home-footer {
+		display: none;
+	}
+	
+	#home-footer {
+		display: none;
+	}
+
+@media screen and (max-width: 769px)  {
+
+	#header {
+		display: none;
+	}
+	
+	#header-2 {
+		display: none;
+	}
+
+	#crypto-images {
+		position: relative;
+	}
+
+	#cl-mobile {
+		display: block;
+	}
+	
+	#main-content {
+		height: auto;
+	}
+	
+	#cl-desktop {
+		display: none;
+	}
+
+	.mobile-fix {
+		display:block !important;
+	}
+
+	#share-buttons-modal img{
+		width: 35px;
+		padding: 5px;
+		border: 0;
+		box-shadow: 0;
+		display: inline !important;
+	}
+
+	.main-search {
+		margin: 2% 0% 2% 0%;
+		padding: 0% 2% 0% 2%;
+		width: 100%;
+		border-radius: 10px;
+	}
+	
+	#post-ad-mobile {
+		display: block;
+		padding-left: 20px;
+	}
+		
+	#post-btn {
+		display: none;
+	}
+
+	#mobile-search-form {
+	display: block !important;
+
+	}
+
+	#main-search-form {
+	display: none !important;
+	}
+
+	#home-categories-mobile {
+	  display: block !important;
+	}
+
+	#home-categories-mobile li {
+	   list-style-type: none;
+	}
+
+	#home-categories {
+	   display: none !important;
+	}
+
+	#category-dropdown-mobile {
+	  display: block  !important;
+	  max-width: 200px;
+	  margin-top: 5px;
+	}
+
+	#category-dropdown {
+		display:none !important;
+	}
+
+	#submit-mobile {
+	    display: inline !important;
+		width: 40px;
+		margin-top: 5px;
+		float: right;
+	}
+
+	#buy-currency {
+		display: none;
+	}
+
+	#sell-currency {
+		display: none;
+	}
+	
+	#crypto-stores {
+		float: left !important;
+	}
+
+}
+
+
+
+@media screen and (max-width: 991px)  {
+	
+
+	#main-content {
+		margin: 0;
+	}
+
+	#sidebar-left {
+	  width: 100%;
+	}
+
+	#top-left-sidebar {	
+		width: 100%;
+		MARGIN: 0;
+	}
+	
+	#middle-left-sidebar {	
+		width: 100%;
+		MARGIN: 0;
+	}
+	
+	#middle-left-sidebar {	
+		width: 100%;
+	}
+	
+	#home-footer {
+		display: block;
+	}
+
+
+	#bottom-left-sidebar {	
+		display: none;
+	}
+	
+	#buy-currency {
+		margin-bottom: 0px;
+	}
+		
+	.filler {
+		display: none;
+	}
+}
+
+@media screen and (min-width: 991px)  {
+#crypto-stores {
+		font-size: 16px;
+	}
+	
+}

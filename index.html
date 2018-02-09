@@ -1,0 +1,72 @@
+<HTML>
+<head>
+  
+<!-- Meta -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:url"           content="http://www.thebitcoinroad.com/" />
+<meta property="og:type"          content="website" />
+<meta property="og:title"         content="The Bitcoin Road" />
+<meta property="og:description"   content="The best way to obtain all kinds of cryptocurrency." />
+<meta property="og:image" content="" />
+
+<!-- Bootstrap core CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="mainStyle.css">
+<link rel="icon" href="images/smallLogo.jpg">
+
+<title>The Bitcoin Road</title>
+
+</head>
+
+<body>
+
+
+<div id="container">
+	<div id="main-content">
+		<div class="row jumbotron" id="header">
+			<div class="absolute-center">
+				<h1> Future home of the BitRoad </h1>					
+			</div>	
+		</div>
+	</div>
+</div>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<script>	
+	
+	$(function() {
+		var intYear = "" + (new Date).getFullYear();
+		$('#year').append(intYear);
+		
+		var test = $.get("http://ipinfo.io", function(response) {
+			$('#city-name').html(response.city + ', ' + response.country);
+		}, "jsonp");
+		
+		
+		
+	});
+	
+	
+	$.urlParam = function(name){
+			var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+			if (results==null){
+			   return null;
+			}
+			else{
+			   return results[1] || 0;
+			}
+		}
+</script>
+		
+
+</body>
+</html>
